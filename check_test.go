@@ -4,10 +4,7 @@
 package check_test
 
 import (
-	"flag"
-	"fmt"
-	"os"
-	"regexp"
+	//"regexp"
 	"runtime"
 	"testing"
 	"time"
@@ -18,27 +15,20 @@ import (
 // We count the number of suites run at least to get a vague hint that the
 // test suite is behaving as it should.  Otherwise a bug introduced at the
 // very core of the system could go unperceived.
-const suitesRunExpected = 8
+const suitesRunExpected = 4
 
 var suitesRun int = 0
 
 func Test(t *testing.T) {
 	check.TestingT(t)
-	if suitesRun != suitesRunExpected && flag.Lookup("check.f").Value.String() == "" {
-		critical(fmt.Sprintf("Expected %d suites to run rather than %d",
-			suitesRunExpected, suitesRun))
+	if suitesRun != suitesRunExpected {
+		t.Fatalf("Expected %d suites to run rather than %d",
+			suitesRunExpected, suitesRun)
 	}
 }
 
 // -----------------------------------------------------------------------
 // Helper functions.
-
-// Break down badly.  This is used in test cases which can't yet assume
-// that the fundamental bits are working.
-func critical(error string) {
-	fmt.Fprintln(os.Stderr, "CRITICAL: "+error)
-	os.Exit(1)
-}
 
 // Return the file line where it's called.
 func getMyLine() int {
@@ -46,27 +36,6 @@ func getMyLine() int {
 		return line
 	}
 	return -1
-}
-
-// -----------------------------------------------------------------------
-// Helper type implementing a basic io.Writer for testing output.
-
-// Type implementing the io.Writer interface for analyzing output.
-type String struct {
-	value string
-}
-
-// The only function required by the io.Writer interface.  Will append
-// written data to the String.value string.
-func (s *String) Write(p []byte) (n int, err error) {
-	s.value += string(p)
-	return len(p), nil
-}
-
-// Trivial wrapper to test errors happening on a different file
-// than the test itself.
-func checkEqualWrapper(c *check.C, obtained, expected interface{}) (result bool, line int) {
-	return c.Check(obtained, check.Equals, expected), getMyLine()
 }
 
 // -----------------------------------------------------------------------
@@ -141,31 +110,6 @@ func (s *FixtureHelper) Test2(c *check.C) {
 	s.trace("Test2", c)
 }
 
-func (s *FixtureHelper) Benchmark1(c *check.C) {
-	s.trace("Benchmark1", c)
-	for i := 0; i < c.N; i++ {
-		time.Sleep(s.sleep)
-	}
-}
-
-func (s *FixtureHelper) Benchmark2(c *check.C) {
-	s.trace("Benchmark2", c)
-	c.SetBytes(1024)
-	for i := 0; i < c.N; i++ {
-		time.Sleep(s.sleep)
-	}
-}
-
-func (s *FixtureHelper) Benchmark3(c *check.C) {
-	var x []int64
-	s.trace("Benchmark3", c)
-	for i := 0; i < c.N; i++ {
-		time.Sleep(s.sleep)
-		x = make([]int64, 5)
-		_ = x
-	}
-}
-
 // -----------------------------------------------------------------------
 // Helper which checks the state of the test and ensures that it matches
 // the given expectations.  Depends on c.Errorf() working, so shouldn't
@@ -181,6 +125,7 @@ type expectedState struct {
 // Verify the state of the test.  Note that since this also verifies if
 // the test is supposed to be in a failed state, no other checks should
 // be done in addition to what is being tested.
+/*
 func checkState(c *check.C, result interface{}, expected *expectedState) {
 	failed := c.Failed()
 	c.Succeed()
@@ -205,3 +150,4 @@ func checkState(c *check.C, result interface{}, expected *expectedState) {
 		}
 	}
 }
+*/
