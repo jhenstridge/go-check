@@ -6,7 +6,6 @@ package check_test
 import (
 	"runtime"
 	"testing"
-	"time"
 
 	"gopkg.in/check.v1"
 )
@@ -14,7 +13,7 @@ import (
 // We count the number of suites run at least to get a vague hint that the
 // test suite is behaving as it should.  Otherwise a bug introduced at the
 // very core of the system could go unperceived.
-const suitesRunExpected = 5
+const suitesRunExpected = 6
 
 var suitesRun int = 0
 
@@ -40,12 +39,9 @@ func getMyLine() int {
 // -----------------------------------------------------------------------
 // Helper suite for testing basic fail behavior.
 
-type FailHelper struct {
-	testLine int
-}
+type FailHelper struct{}
 
 func (s *FailHelper) TestLogAndFail(c *check.C) {
-	s.testLine = getMyLine() - 1
 	c.Log("Expected failure!")
 	c.Fail()
 }
@@ -63,24 +59,19 @@ func (s *SuccessHelper) TestLogAndSucceed(c *check.C) {
 // Helper suite for testing ordering and behavior of fixture.
 
 type FixtureHelper struct {
-	calls   []string
-	panicOn string
+	calls   int
+	failOn  string
 	skip    bool
 	skipOnN int
-	sleepOn string
-	sleep   time.Duration
-	bytes   int64
 }
 
 func (s *FixtureHelper) trace(name string, c *check.C) {
-	s.calls = append(s.calls, name)
-	if name == s.panicOn {
-		panic(name)
+	c.Log(name)
+	s.calls += 1
+	if name == s.failOn {
+		c.FailNow()
 	}
-	if s.sleep > 0 && s.sleepOn == name {
-		time.Sleep(s.sleep)
-	}
-	if s.skip && s.skipOnN == len(s.calls)-1 {
+	if s.skip && s.skipOnN == s.calls-1 {
 		c.Skip("skipOnN == n")
 	}
 }
