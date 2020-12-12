@@ -33,6 +33,8 @@ func TestHelperSuite(t *testing.T) {
 			suite.failOn = *helperFailFlag
 		}
 		check.Run(t, suite)
+	case "integrationTestHelper":
+		check.Run(t, &integrationTestHelper{})
 	default:
 		t.Skip()
 	}
