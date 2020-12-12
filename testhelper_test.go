@@ -6,6 +6,8 @@ import (
 	"flag"
 	"os"
 	"os/exec"
+	"regexp"
+	"strings"
 	"testing"
 
 	"gopkg.in/check.v1"
@@ -57,6 +59,21 @@ func (result helperResult) Status(test string) string {
 		}
 	}
 	return ""
+}
+
+var isStatusLine = regexp.MustCompile(`^\s*(?:===|---) `).MatchString
+
+func (result helperResult) Logs(test string) string {
+	var lines []string
+	for _, event := range result {
+		if event.Test != "TestHelperSuite/"+test {
+			continue
+		}
+		if event.Action == "output" && !isStatusLine(event.Output) {
+			lines = append(lines, event.Output)
+		}
+	}
+	return strings.Join(lines, "")
 }
 
 func runHelperSuite(c *check.C, name string, args ...string) (code int, output helperResult) {
