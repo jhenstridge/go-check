@@ -4,7 +4,6 @@
 package check_test
 
 import (
-	//"regexp"
 	"runtime"
 	"testing"
 	"time"
@@ -15,7 +14,7 @@ import (
 // We count the number of suites run at least to get a vague hint that the
 // test suite is behaving as it should.  Otherwise a bug introduced at the
 // very core of the system could go unperceived.
-const suitesRunExpected = 4
+const suitesRunExpected = 5
 
 var suitesRun int = 0
 
@@ -109,45 +108,3 @@ func (s *FixtureHelper) Test1(c *check.C) {
 func (s *FixtureHelper) Test2(c *check.C) {
 	s.trace("Test2", c)
 }
-
-// -----------------------------------------------------------------------
-// Helper which checks the state of the test and ensures that it matches
-// the given expectations.  Depends on c.Errorf() working, so shouldn't
-// be used to test this one function.
-
-type expectedState struct {
-	name   string
-	result interface{}
-	failed bool
-	log    string
-}
-
-// Verify the state of the test.  Note that since this also verifies if
-// the test is supposed to be in a failed state, no other checks should
-// be done in addition to what is being tested.
-/*
-func checkState(c *check.C, result interface{}, expected *expectedState) {
-	failed := c.Failed()
-	c.Succeed()
-	log := c.GetTestLog()
-	matched, matchError := regexp.MatchString("^"+expected.log+"$", log)
-	if matchError != nil {
-		c.Errorf("Error in matching expression used in testing %s: %v",
-			expected.name, matchError)
-	} else if !matched {
-		c.Errorf("%s logged:\n----------\n%s----------\n\nExpected:\n----------\n%s\n----------",
-			expected.name, log, expected.log)
-	}
-	if result != expected.result {
-		c.Errorf("%s returned %#v rather than %#v",
-			expected.name, result, expected.result)
-	}
-	if failed != expected.failed {
-		if failed {
-			c.Errorf("%s has failed when it shouldn't", expected.name)
-		} else {
-			c.Errorf("%s has not failed when it should", expected.name)
-		}
-	}
-}
-*/
