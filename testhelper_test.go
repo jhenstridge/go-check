@@ -16,6 +16,7 @@ import (
 var (
 	helperRunFlag  = flag.String("helper.run", "", "Run helper suite")
 	helperFailFlag = flag.String("helper.fail", "", "")
+	helperSkipFlag = flag.Int("helper.skip", -1, "")
 )
 
 func TestHelperSuite(t *testing.T) {
@@ -32,9 +33,35 @@ func TestHelperSuite(t *testing.T) {
 		if helperFailFlag != nil {
 			suite.failOn = *helperFailFlag
 		}
+		if *helperSkipFlag >= 0 {
+			suite.skip = true
+			suite.skipOnN = *helperSkipFlag
+		}
 		check.Run(t, suite)
 	case "integrationTestHelper":
 		check.Run(t, &integrationTestHelper{})
+	case "WrongTestArgHelper":
+		check.Run(t, &WrongTestArgHelper{})
+	case "WrongSetUpTestArgHelper":
+		check.Run(t, &WrongSetUpTestArgHelper{})
+	case "WrongSetUpSuiteArgHelper":
+		check.Run(t, &WrongSetUpSuiteArgHelper{})
+	case "WrongTestArgCountHelper":
+		check.Run(t, &WrongTestArgCountHelper{})
+	case "WrongSetUpTestArgCountHelper":
+		check.Run(t, &WrongSetUpTestArgCountHelper{})
+	case "WrongSetUpSuiteArgCountHelper":
+		check.Run(t, &WrongSetUpSuiteArgCountHelper{})
+	case "NoTestsHelper":
+		check.Run(t, &NoTestsHelper{})
+	case "FixtureCheckHelper":
+		suite := &FixtureCheckHelper{}
+		if helperFailFlag != nil {
+			suite.fail = *helperFailFlag
+		}
+		check.Run(t, suite)
+	case "FixtureLogHelper":
+		check.Run(t, &FixtureLogHelper{})
 	default:
 		t.Skip()
 	}
@@ -65,10 +92,10 @@ func (result helperResult) Status(test string) string {
 
 var isStatusLine = regexp.MustCompile(`^\s*(?:===|---) `).MatchString
 
-func (result helperResult) Logs(test string) string {
+func (result helperResult) logs(match func(testEvent) bool) string {
 	var lines []string
 	for _, event := range result {
-		if event.Test != "TestHelperSuite/"+test {
+		if !match(event) {
 			continue
 		}
 		if event.Action == "output" && !isStatusLine(event.Output) {
@@ -76,6 +103,18 @@ func (result helperResult) Logs(test string) string {
 		}
 	}
 	return strings.Join(lines, "")
+}
+
+func (result helperResult) Logs(test string) string {
+	return result.logs(func(event testEvent) bool {
+		return event.Test == "TestHelperSuite/"+test
+	})
+}
+
+func (result helperResult) AllLogs() string {
+	return result.logs(func(event testEvent) bool {
+		return strings.HasPrefix(event.Test, "TestHelperSuite/")
+	})
 }
 
 func runHelperSuite(c *check.C, name string, args ...string) (code int, output helperResult) {
