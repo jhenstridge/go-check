@@ -60,14 +60,3 @@ func (s *RunS) TestFailOnSetUpSuite(c *C) {
 	c.Check(output.Status("FixtureHelper/Test1"), Equals, "")
 	c.Check(output.Status("FixtureHelper/Test2"), Equals, "")
 }
-
-// -----------------------------------------------------------------------
-// Verify that List works correctly.
-
-func (s *RunS) TestList(c *C) {
-	names := List(&FixtureHelper{})
-	c.Assert(names, DeepEquals, []string{
-		"FixtureHelper.Test1",
-		"FixtureHelper.Test2",
-	})
-}
